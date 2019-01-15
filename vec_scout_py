@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2018 mth75, Inc.
+# code microsoft azure/vision api image indentifier Copyright (c) 2018 Hassan Habib
+# code brightness detection Acidzebra
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the file LICENSE.txt or at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import anki_vector, time, math, requests
+from anki_vector.util import degrees, distance_mm, speed_mmps
+from PIL import Image, ImageStat
+from anki_vector.events import Events
+import functools
+import threading
+import os
+
+#determine distance
+def dist():
+    with anki_vector.Robot(requires_behavior_control=False) as robot:
+
+        proximity_data = robot.proximity.last_sensor_reading.distance
+
+        distance_mm = (int(proximity_data.distance_mm))
+        print ("Distance in mm:", distance_mm)
+    return distance_mm
+
+if __name__ == "__dist__":
+    dist()
+
+#microsoft azure/vision api image indentifier Copyright (c) 2018 Hassan Habib
+def identify_image(image, image_id):
+    headers = {'content-type' : 'application/octet-stream'}
+    params  = {'visualFeatures': 'Description', 'subscription-key': ''}
+    filename = f"{image_id}.png"
+    try:
+        image.save(filename)
+        fin = open(filename, 'rb')
+        data = fin.read()
+        # Make sure the url we are calling below corresponds to your Azure subscription
+        # see this issue for more info (https://github.com/hassanhabib/anki_robot_with_azure/issues/1)
+        response = requests.post('https://northeurope.api.cognitive.microsoft.com//vision/v2.0/analyze', headers=headers, params=params, data=data)
+        seen = response.json()['description']['captions'][0]['text']
+        print(seen)
+        return "I see " + seen
+    finally:
+        fin.close()
+        os.remove(filename)
+
+#grab a camera image, determine brightness
+def img_brightness():
+    with anki_vector.Robot(enable_camera_feed=True, requires_behavior_control=True) as robot:
+        while not robot.camera.latest_image:
+            time.sleep(0.5)
+        image = robot.camera.latest_image
+        image.show()
+        image_id = robot._camera._latest_image_id
+        seen = identify_image(image, image_id)
+        stat = ImageStat.Stat(image)
+        r,g,b = stat.mean
+        actual_light_value = math.sqrt(0.241*(r**2) + 0.691*(g**2) + 0.068*(b**2))
+        print ("average brightness:", actual_light_value)
+        robot.say_text(seen)
+    return actual_light_value
+
+if __name__ == "__img_brightness__":
+    img_brightness()
+
+if img_brightness() < 100:
+	print("it's a little dark in here")
+else:
+	print("light levels seem fine")
+
+#motor functions
+def drive_straight():
+    args = anki_vector.util.parse_command_args()
+    with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
+            print("Drive Vector straight...")
+            robot.behavior.drive_straight(distance_mm(50), speed_mmps(100))
+
+
+def drive_turn():
+    args = anki_vector.util.parse_command_args()
+    with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
+            print("Turn Vector in place...")
+            robot.behavior.turn_in_place(degrees(90))
+
+
+#driving "loop" determined by proximity and environment illumanition
+while dist() > 150 or img_brightness() > 25:
+    drive_straight()
+    while dist() < 150 or img_brightness() < 25:
+        drive_turn()
+        while dist() > 150 or img_brightness() < 25:
+            drive_straight()
