@@ -39,7 +39,7 @@ if __name__ == "__dist__":
 #microsoft azure/vision api image indentifier Copyright (c) 2018 Hassan Habib
 def identify_image(image, image_id):
     headers = {'content-type' : 'application/octet-stream'}
-    params  = {'visualFeatures': 'Description', 'subscription-key': ': '<subscription-key>'}
+    params  = {'visualFeatures': 'Description', 'subscription-key': '<subscription-key>'}
     filename = f"{image_id}.png"
     try:
         image.save(filename)
