@@ -49,6 +49,11 @@ def identify_image(image, image_id):
         # see this issue for more info (https://github.com/hassanhabib/anki_robot_with_azure/issues/1)
         response = requests.post('https://northeurope.api.cognitive.microsoft.com//vision/v2.0/analyze', headers=headers, params=params, data=data)
         seen = response.json()['description']['captions'][0]['text']
+	# "something I don't recognize" added by Habuma: https://forums.anki.com/u/habuma/summary
+        if response.json()['description']['captions'].__len__() > 0:
+            seen = response.json()['description']['captions'][0]['text']
+        else:
+            seen = "something I don't recognize"
         print(seen)
         return "I see " + seen
     finally:
