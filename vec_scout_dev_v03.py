@@ -44,11 +44,11 @@ def drive_turn():
         robot.behavior.turn_in_place(degrees(angle))
 
 #driving "loop" determined by proximity and environment illumination
-while int(distance_mm) > 50 or img_brightness() > 25:
+while dist() > 50 or img_brightness() > 25:
     drive_straight()
-    while distance_mm < 50 or img_brightness() < 25:
+    while dist() < 50 or img_brightness() < 25:
         drive_turn()
-        while distance_mm > 50 or img_brightness() < 25:
+        while dist() > 50 or img_brightness() < 25:
             drive_straight()
 
 # drive straight
