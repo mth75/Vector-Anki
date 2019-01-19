@@ -6,9 +6,6 @@ import functools
 import threading
 import os
 
-robot = anki_vector.Robot()
-robot.connect()
-
 angle = 90
 
 #determine distance
@@ -37,17 +34,16 @@ if __name__ == "__img_brightness__":
 
 
 def drive_straight():
+    args = anki_vector.util.parse_command_args()
     dynamic_speed = dist() * 0.18333333
     dynamic_distance = dist() * 0.75
     print("average brightness:", img_brightness(), "dynamic speed:", dynamic_speed, "dynamic distance", dynamic_distance, "/", dist())
-    with anki_vector.Robot(requires_behavior_control=True) as robot:
-        # determine distance
-        proximity_data = robot.proximity.last_sensor_reading.distance
-        distance_mm = (int(proximity_data.distance_mm))
+    with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
         robot.behavior.drive_straight(distance_mm(dynamic_distance),speed_mmps(dynamic_speed))
 
 def drive_turn():
-    with anki_vector.Robot(requires_behavior_control=True) as robot:
+    args = anki_vector.util.parse_command_args()
+    with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
         robot.behavior.turn_in_place(degrees(angle))
 
 #driving "loop" determined by proximity and environment illumination
@@ -57,6 +53,8 @@ while dist() > 50 or img_brightness() > 25:
         drive_turn()
         while dist() > 50 or img_brightness() < 25:
             drive_straight()
+
+
 
 # drive straight
 # until
