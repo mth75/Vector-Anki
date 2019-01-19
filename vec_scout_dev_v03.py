@@ -12,7 +12,14 @@ robot.connect()
 angle = 90
 
 #determine distance
+def dist():
+    with anki_vector.Robot(requires_behavior_control=False) as robot:
+        proximity_data = robot.proximity.last_sensor_reading.distance
+        distance_mm = (int(proximity_data.distance_mm))
+    return distance_mm
 
+if __name__ == "__dist__":
+    dist()
 
 def img_brightness():
     with anki_vector.Robot(enable_camera_feed=True, requires_behavior_control=True) as robot:
