@@ -23,6 +23,9 @@ import functools
 import threading
 import os
 
+with anki_vector.Robot(args.serial) as robot:
+    robot.behavior.drive_off_charger()
+
 #determine distance
 def dist():
     with anki_vector.Robot(requires_behavior_control=False) as robot:
