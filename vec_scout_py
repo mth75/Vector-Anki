@@ -23,6 +23,8 @@ import functools
 import threading
 import os
 
+args = anki_vector.util.parse_command_args()
+
 with anki_vector.Robot(args.serial) as robot:
     robot.behavior.drive_off_charger()
 
@@ -89,14 +91,11 @@ else:
 
 #motor functions
 def drive_straight():
-    args = anki_vector.util.parse_command_args()
     with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
             print("Drive Vector straight...")
             robot.behavior.drive_straight(distance_mm(50), speed_mmps(100))
 
-
 def drive_turn():
-    args = anki_vector.util.parse_command_args()
     with anki_vector.Robot(args.serial, requires_behavior_control=True) as robot:
             print("Turn Vector in place...")
             robot.behavior.turn_in_place(degrees(90))
